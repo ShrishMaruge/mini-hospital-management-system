@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard | HMS{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:16px;
+        flex-wrap:wrap;
+    ">
+
+        <div>
+            <h2 style="margin-bottom:8px;">
+                Patient Dashboard
+            </h2>
+
+            <p class="muted">
+                Welcome, {{ request.user.full_name }}.
+                Browse doctors and manage your appointments.
+            </p>
+        </div>
+
+        <div style="
+            display:flex;
+            gap:12px;
+            align-items:center;
+            flex-wrap:wrap;
+        ">
+
+            <div style="
+                padding:12px 16px;
+                border-radius:12px;
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+            ">
+                <strong>Role:</strong> Patient
+            </div>
+
+            {% if request.user.google_access_token %}
+
+                <div style="
+                    padding:12px 16px;
+                    border-radius:12px;
+                    background:#ecfdf5;
+                    border:1px solid #bbf7d0;
+                    color:#166534;
+                    font-weight:700;
+                ">
+                    Google Calendar Connected
+                </div>
+
+            {% else %}
+
+                <a href="{% url 'google_connect' %}"
+                   class="btn"
+                   style="
+                        background:#dc2626;
+                        border-color:#dc2626;
+                   ">
+
+                    Connect Google Calendar
+
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<div class="card">
+
+    <h3>Available Doctors</h3>
+
+    <p class="muted">
+        Choose a doctor to view available appointment slots.
+    </p>
+
+    {% if doctors %}
+
+        <div class="grid">
+
+            {% for doctor in doctors %}
+
+                <div style="
+                    border:1px solid #e5e7eb;
+                    border-radius:16px;
+                    padding:22px;
+                    background:#f8fafc;
+                    transition:0.3s;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+                        gap:10px;
+                        margin-bottom:14px;
+                    ">
+
+                        <div>
+
+                            <h3 style="
+                                margin-bottom:8px;
+                                color:#111827;
+                            ">
+                                Dr. {{ doctor.full_name }}
+                            </h3>
+
+                            <div style="
+                                display:inline-block;
+                                padding:6px 12px;
+                                background:#eff6ff;
+                                color:#1d4ed8;
+                                border-radius:999px;
+                                font-size:13px;
+                                font-weight:700;
+                            ">
+                                {{ doctor.specialization|default:"General Physician" }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <p style="margin:16px 0 8px 0;">
+
+                        <strong>Qualification:</strong>
+
+                        {{ doctor.qualification|default:"Not specified" }}
+
+                    </p>
+
+                    <p style="margin:0 0 8px 0;">
+
+                        <strong>Experience:</strong>
+
+                        {% if doctor.year_difference %}
+                            {{ doctor.year_difference }} years
+                        {% else %}
+                            Not specified
+                        {% endif %}
+
+                    </p>
+
+                    
+
+                    <a class="btn"
+                       href="{% url 'doctor_slots' doctor.id %}"
+                       style="
+                            width:100%;
+                            text-align:center;
+                            border-radius:12px;
+                            font-weight:700;
+                       ">
+
+                        View Available Slots
+
+                    </a>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div style="
+            padding:22px;
+            border:1px dashed #cbd5e1;
+            border-radius:12px;
+            background:#f8fafc;
+        ">
+
+            <h3>No Doctors Available</h3>
+
+            <p class="muted">
+                There are no registered doctors at the moment.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+
+<div class="card">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:16px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+    ">
+
+        <div>
+
+            <h3 style="margin-bottom:6px;">
+                My Appointments
+            </h3>
+
+            <p class="muted">
+                Track your appointment requests.
+                Pending and confirmed appointments reserve that slot for you.
+            </p>
+
+        </div>
+
+        <div style="
+            padding:10px 14px;
+            border-radius:12px;
+            background:#f8fafc;
+            border:1px solid #e5e7eb;
+        ">
+
+            <strong>Total:</strong>
+            {{ bookings|length }}
+
+        </div>
+
+    </div>
+
+    {% if bookings %}
+
+        <div style="overflow-x:auto;">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Slot</th>
+                        <th>Status</th>
+                        <th>Calendar</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for booking in bookings %}
+
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    Dr. {{ booking.slot.doctor.full_name }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ booking.slot.date }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.start_time }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.end_time }}
+                            </td>
+
+                            <td>
+
+                                {% if booking.slot.is_booked %}
+
+                                    <span style="
+                                        color:#991b1b;
+                                        font-weight:700;
+                                    ">
+                                        Occupied
+                                    </span>
+
+                                {% else %}
+
+                                    <span style="
+                                        color:#166534;
+                                        font-weight:700;
+                                    ">
+                                        Available
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if booking.status == "pending" %}
+
+                                    <span style="
+                                        color:#d97706;
+                                        font-weight:700;
+                                    ">
+                                        Pending
+                                    </span>
+
+                                {% elif booking.status == "confirmed" %}
+
+                                    <span style="
+                                        color:#16a34a;
+                                        font-weight:700;
+                                    ">
+                                        Confirmed
+                                    </span>
+
+                                {% elif booking.status == "rejected" %}
+
+                                    <span style="
+                                        color:#dc2626;
+                                        font-weight:700;
+                                    ">
+                                        Rejected
+                                    </span>
+
+                                {% elif booking.status == "canceled" %}
+
+                                    <span style="
+                                        color:#6b7280;
+                                        font-weight:700;
+                                    ">
+                                        Cancelled
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="muted">
+                                        {{ booking.status|title }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- GOOGLE CALENDAR STATUS -->
+
+                            <td>
+
+                                {% if booking.patient_calendar_event_id %}
+
+                                    <span style="
+                                        background:#ecfdf5;
+                                        color:#166534;
+                                        padding:6px 12px;
+                                        border-radius:999px;
+                                        border:1px solid #bbf7d0;
+                                        font-size:13px;
+                                        font-weight:700;
+                                    ">
+                                        Created
+                                    </span>
+
+                                {% elif booking.status == "confirmed" %}
+
+                                    <span style="
+                                        background:#fef2f2;
+                                        color:#dc2626;
+                                        padding:6px 12px;
+                                        border-radius:999px;
+                                        border:1px solid #fecaca;
+                                        font-size:13px;
+                                        font-weight:700;
+                                    ">
+                                        Missing
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="muted">
+                                        —
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                {% if booking.status == "confirmed" %}
+
+                                    <a class="btn btn-danger"
+                                       href="{% url 'cancel_booking' booking.id %}">
+
+                                        Cancel
+
+                                    </a>
+
+                                {% elif booking.status == "pending" %}
+
+                                    <span class="muted">
+                                        Waiting for doctor
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="muted">
+                                        No action
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div style="
+            padding:22px;
+            border:1px dashed #cbd5e1;
+            border-radius:12px;
+            background:#f8fafc;
+        ">
+
+            <h3>No Appointments Yet</h3>
+
+            <p class="muted">
+                View a doctor’s available slots and submit your first appointment request.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

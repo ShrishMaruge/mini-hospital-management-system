@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Create Slot | HMS{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:720px;margin:auto;">
+    <h2>Create Availability Slot</h2>
+    <p class="muted">Create a single slot or split a time range into multiple slots using duration.</p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>Date</label>
+        <input type="date" name="date" required>
+
+        <div class="grid">
+            <div>
+                <label>Start Time</label>
+                <input type="time" name="start" required>
+            </div>
+
+            <div>
+                <label>End Time</label>
+                <input type="time" name="end" required>
+            </div>
+        </div>
+
+        <label>Duration in Minutes</label>
+        <input type="number" name="duration" placeholder="Leave empty for one single slot">
+
+        <div class="actions" style="margin-top:20px;">
+            <button class="btn" type="submit">Create Slot</button>
+            <a class="btn btn-secondary" href="{% url 'doctor_dashboard' %}">Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

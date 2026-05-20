@@ -1,0 +1,20 @@
+service: hms-email-service
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-east-1
+  timeout: 30
+
+plugins:
+  - serverless-offline
+
+functions:
+  sendEmail:
+    handler: handler.send_email_handler
+    timeout: 30
+    events:
+      - http:
+          path: send-email
+          method: post
+          cors: true

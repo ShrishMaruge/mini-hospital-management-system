@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Home | HMS{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Mini Hospital Management System</h1>
+    <p>
+        Manage doctor availability, patient appointment requests, approvals,
+        cancellations, and email notifications from one simple local system.
+    </p>
+
+    {% if not user.is_authenticated %}
+        <div class="actions">
+            <a class="btn" href="{% url 'register' 'doctor' %}">Register as Doctor</a>
+            <a class="btn btn-success" href="{% url 'register' 'patient' %}">Register as Patient</a>
+            <a class="btn btn-secondary" href="{% url 'login' 'doctor' %}">Doctor Login</a>
+            <a class="btn btn-secondary" href="{% url 'login' 'patient' %}">Patient Login</a>
+        </div>
+    {% else %}
+        {% if user.role == "doctor" %}
+            <a class="btn" href="{% url 'doctor_dashboard' %}">Go to Doctor Dashboard</a>
+        {% else %}
+            <a class="btn" href="{% url 'patient_dashboard' %}">Go to Patient Dashboard</a>
+        {% endif %}
+    {% endif %}
+</section>
+
+<div class="grid" style="margin-top:24px;">
+    <div class="card">
+        <h3>For Doctors</h3>
+        <p class="muted">Create available time slots, review patient requests, and accept or reject appointments.</p>
+    </div>
+
+    <div class="card">
+        <h3>For Patients</h3>
+        <p class="muted">Browse doctors, view available slots, request appointments, and manage bookings.</p>
+    </div>
+
+    <div class="card">
+        <h3>Email Notifications</h3>
+        <p class="muted">OTP, appointment request, approval, rejection, and cancellation emails are sent automatically.</p>
+    </div>
+</div>
+{% endblock %}

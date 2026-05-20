@@ -1,0 +1,12 @@
+{
+  "name": "hms-email-service",
+  "version": "1.0.0",
+  "description": "Serverless email service for HMS",
+  "scripts": {
+    "dev": "serverless offline"
+  },
+  "devDependencies": {
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.6.0"
+  }
+}

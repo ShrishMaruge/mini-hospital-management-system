@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Slot | HMS{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:760px;margin:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+        <div>
+            <h2>Edit Availability Slot</h2>
+            <p class="muted">Update the appointment date and time range for this availability slot.</p>
+        </div>
+
+        {% if slot.is_booked %}
+            <span style="padding:6px 10px;border-radius:999px;background:#fee2e2;color:#991b1b;font-size:13px;font-weight:700;">
+                Occupied
+            </span>
+        {% else %}
+            <span style="padding:6px 10px;border-radius:999px;background:#dcfce7;color:#166534;font-size:13px;font-weight:700;">
+                Available
+            </span>
+        {% endif %}
+    </div>
+
+    {% if error %}
+        <div class="alert">{{ error }}</div>
+    {% endif %}
+
+    <div style="margin-top:18px;padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;">
+        <h3 style="margin-bottom:10px;">Current Slot</h3>
+
+        <p style="margin:0 0 8px 0;">
+            <strong>Date:</strong> {{ slot.date }}
+        </p>
+
+        <p style="margin:0 0 8px 0;">
+            <strong>Start Time:</strong> {{ slot.start_time }}
+        </p>
+
+        <p style="margin:0;">
+            <strong>End Time:</strong> {{ slot.end_time }}
+        </p>
+    </div>
+
+    <form method="post" style="margin-top:22px;">
+        {% csrf_token %}
+
+        <label>Date</label>
+        <input
+            type="date"
+            name="date"
+            value="{{ slot.date|date:'Y-m-d' }}"
+            required
+            {% if slot.is_booked %}disabled{% endif %}
+        >
+
+        <div class="grid">
+            <div>
+                <label>Start Time</label>
+                <input
+                    type="time"
+                    name="start"
+                    value="{{ slot.start_time|time:'H:i' }}"
+                    required
+                    {% if slot.is_booked %}disabled{% endif %}
+                >
+            </div>
+
+            <div>
+                <label>End Time</label>
+                <input
+                    type="time"
+                    name="end"
+                    value="{{ slot.end_time|time:'H:i' }}"
+                    required
+                    {% if slot.is_booked %}disabled{% endif %}
+                >
+            </div>
+        </div>
+
+        <div class="actions" style="margin-top:22px;">
+            {% if slot.is_booked %}
+                <button class="btn btn-secondary" type="button" disabled>
+                    Booked Slot Cannot Be Edited
+                </button>
+            {% else %}
+                <button class="btn" type="submit">
+                    Update Slot
+                </button>
+            {% endif %}
+
+            <a class="btn btn-secondary" href="{% url 'doctor_dashboard' %}">
+                Back
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard | HMS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+        <div>
+            <h2>Doctor Dashboard</h2>
+
+            <p class="muted">
+                Welcome, Dr. {{ request.user.full_name }}.
+                {% if request.user.specialization %}
+                    {{ request.user.specialization }}.
+                {% endif %}
+                {% if doctor_experience is not None %}
+                    Experience: {{ doctor_experience }} years.
+                {% endif %}
+            </p>
+
+            {% if request.user.google_access_token %}
+                <p style="color:#16a34a;font-weight:700;margin-top:10px;">
+                    Google Calendar Connected
+                </p>
+            {% else %}
+                <a class="btn btn-secondary" href="{% url 'google_connect' %}" style="margin-top:10px;">
+                    Connect Google Calendar
+                </a>
+            {% endif %}
+        </div>
+
+        <a class="btn" href="{% url 'create_slot' %}">
+            Create Availability Slot
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Available Slots</h3>
+    <p class="muted">These open slots are visible to patients.</p>
+
+    {% if slots_by_date %}
+        {% for date_value, slots in slots_by_date.items %}
+            <h3 class="section-title">{{ date_value }}</h3>
+
+            <div class="grid">
+                {% for slot in slots %}
+                    <div style="border:1px solid #e5e7eb;border-radius:12px;padding:18px;background:#f8fafc;">
+                        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px;">
+                            <strong>{{ slot.date }}</strong>
+
+                            <span style="padding:6px 10px;border-radius:999px;background:#dcfce7;color:#166534;font-size:13px;font-weight:700;">
+                                Available
+                            </span>
+                        </div>
+
+                        <p style="margin:0 0 10px 0;">
+                            <strong>Start Time:</strong>
+                            {{ slot.start_time }}
+                        </p>
+
+                        <p style="margin:0 0 16px 0;">
+                            <strong>End Time:</strong>
+                            {{ slot.end_time }}
+                        </p>
+
+                        <div class="actions">
+                            <a class="btn btn-secondary" href="{% url 'edit_slot' slot.id %}">
+                                Edit
+                            </a>
+
+                            <a class="btn btn-danger" href="{% url 'delete_slot' slot.id %}">
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div style="padding:22px;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;">
+            <h3>No Available Slots</h3>
+            <p class="muted">
+                You currently have no open slots. Create a new slot to allow patient bookings.
+            </p>
+            <a class="btn" href="{% url 'create_slot' %}">Create Slot</a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Occupied Slots and Appointment Requests</h3>
+    <p class="muted">
+        Pending requests and confirmed appointments appear here. Confirmed slots remain occupied.
+    </p>
+
+    {% if bookings %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Slot</th>
+                    <th>Status</th>
+                    <th>Calendar</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.patient.full_name }}</td>
+                        <td>{{ booking.slot.date }}</td>
+                        <td>{{ booking.slot.start_time }}</td>
+                        <td>{{ booking.slot.end_time }}</td>
+
+                        <td>
+                            {% if booking.slot.is_booked %}
+                                <span style="color:#991b1b;font-weight:700;">Occupied</span>
+                            {% else %}
+                                <span style="color:#166534;font-weight:700;">Available</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if booking.status == "pending" %}
+                                <span style="color:#d97706;font-weight:700;">Pending</span>
+                            {% elif booking.status == "confirmed" %}
+                                <span style="color:#16a34a;font-weight:700;">Confirmed</span>
+                            {% elif booking.status == "rejected" %}
+                                <span style="color:#dc2626;font-weight:700;">Rejected</span>
+                            {% else %}
+                                <span class="muted">{{ booking.status|title }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if booking.doctor_calendar_event_id %}
+                                <span style="color:#16a34a;font-weight:700;">Created</span>
+                            {% elif booking.status == "confirmed" %}
+                                <span style="color:#d97706;font-weight:700;">Missing</span>
+                            {% else %}
+                                <span class="muted">Not yet</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="actions">
+                                {% if booking.status == "pending" %}
+                                    <a class="btn btn-success" href="{% url 'accept_appointment' booking.id %}">
+                                        Accept
+                                    </a>
+
+                                    <a class="btn btn-warning" href="{% url 'reject_appointment' booking.id %}">
+                                        Reject
+                                    </a>
+                                {% elif booking.status == "confirmed" %}
+                                    <a class="btn btn-danger" href="{% url 'cancel_booking_by_doctor' booking.id %}">
+                                        Cancel
+                                    </a>
+                                {% else %}
+                                    <span class="muted">No action</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div style="padding:22px;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;">
+            <h3>No Appointment Requests</h3>
+            <p class="muted">
+                Patient requests will appear here after they book one of your available slots.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
